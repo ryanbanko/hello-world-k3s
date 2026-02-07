@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: ghcr.io/ryanbanko/hello-world-go:6638f7490a89c4aad23dc05cc81d57b44c084302
+          image: ghcr.io/ryanbanko/hello-world-go:82dd65deada2cbc1f77529ecc4b5c2a18f7e3108
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
