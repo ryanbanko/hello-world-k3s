@@ -2,33 +2,36 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+      - run: |
+          IMAGE=ghcr.io/ryanbanko/hello-world-go:${GITHUB_SHA::7}
+          docker build -t $IMAGE .
+          docker push $IMAGE
 
-      - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
-
-      - name: Update deployment manifest
-        run: |
-          sed -i "s|image: ghcr.io/ryanbanko/hello-world-go:.*|image: ghcr.io/ryanbanko/hello-world-go:${{ github.sha }}|" k8s/deployment.yaml
-          git config user.name "GitHub Actions"
+          git config user.name "github-actions"
           git config user.email "actions@github.com"
+
+          git pull --rebase origin main
+
+          sed -i "s|image: .*|image: $IMAGE|" k8s/deployment.yaml
+
           git add k8s/deployment.yaml
-          git commit -m "Update image to ${{ github.sha }}"
+          git commit -m "update image" || exit 0
           git push
+
