@@ -22,7 +22,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.CR_PAT }}
 
       - run: |
           IMAGE=ghcr.io/ryanbanko/hello-world-go:${GITHUB_SHA::7}
